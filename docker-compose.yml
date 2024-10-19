@@ -1,0 +1,18 @@
+version: "3.4"
+services:
+  server:
+    build:
+      context: .
+      target: production
+    container_name: doc-gallery-production
+    environment:
+      - PORT=${PORT:-3000}
+      - TEMPLATE_PATH=/app/template
+      - OUTPUT_PATH=/tmp
+    ports:
+      - "${PORT:-3000}:${PORT:-3000}"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${PORT:-3000}/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
