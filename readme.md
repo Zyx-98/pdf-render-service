@@ -34,8 +34,5 @@
 
 ## Testing
 
-1. **Import Postman Collection**:  
-   - In Postman, click `Import` and select the JSON file (`doc-gallery.postman_collection.json`).
-
-2. **Verify the Responses**:  
-   Check the API responses for correct status codes and data.
+- In Postman, click `Import` and select the JSON file (`doc-gallery.postman_collection.json`).
+- Check the API responses for correct status codes and data.
