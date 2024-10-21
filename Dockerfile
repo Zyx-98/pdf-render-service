@@ -13,7 +13,6 @@ FROM node:20.18-alpine AS development
 RUN apk add --no-cache \
     curl \
     libreoffice \
-    openjdk11 \
     && rm -rf /var/cache/apk/*
 
 COPY assets/fonts/. /usr/share/fonts/truetype/libreoffice/    
@@ -51,7 +50,6 @@ ENV NODE_ENV=production
 RUN apk add --no-cache \
     curl \
     libreoffice \
-    openjdk11 \
     && rm -rf /var/cache/apk/*
 
 COPY assets/fonts/. /usr/share/fonts/truetype/libreoffice/    
