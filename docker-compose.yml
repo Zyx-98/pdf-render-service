@@ -4,6 +4,8 @@ services:
     build:
       context: .
       target: production
+      args:
+        - NUM_INSTANCES=${NUM_INSTANCES:-1}
     container_name: doc-gallery-production
     environment:
       - PORT=${PORT:-3000}
@@ -11,6 +13,7 @@ services:
       - OUTPUT_PATH=/tmp
     ports:
       - "${PORT:-3000}:${PORT:-3000}"
+      - NUM_INSTANCES=${NUM_INSTANCES:-1}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:${PORT:-3000}/health"]
       interval: 30s

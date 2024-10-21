@@ -10,6 +10,7 @@ export default class Locals {
         process.env.TEMPLATE_PATH || path.resolve(__dirname, "../../storage/template"),
       apiPrefix: process.env.API_PREFIX || "api",
       outputPath: process.env.OUTPUT_PATH || path.resolve(__dirname, "../../storage/output"),
+      numInstances: +(process.env.NUM_INSTANCES || 0) || 1
     };
   }
 

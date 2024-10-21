@@ -26,6 +26,14 @@ RUN npm install
 
 COPY . .
 
+ARG NUM_INSTANCES
+
+ENV NUM_INSTANCES=${NUM_INSTANCES:-1}
+
+RUN chmod +x ./libreoffice.sh
+
+RUN ./libreoffice.sh
+
 RUN npm run build
 
 ENV PORT=3000
@@ -60,6 +68,15 @@ RUN groupadd -g 10001 usergroup && \
 COPY --from=development /app/package*.json ./
 COPY --from=development /app/dist ./dist
 COPY storage/template/. /app/template/
+COPY /libreoffice.sh ./
+
+ARG NUM_INSTANCES
+
+ENV NUM_INSTANCES=${NUM_INSTANCES:-1}
+
+RUN chmod +x ./libreoffice.sh
+
+RUN ./libreoffice.sh
 
 RUN npm ci --only=production
 

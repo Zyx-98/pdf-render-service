@@ -3,7 +3,6 @@ import path from "path";
 import createReport from "docx-templates";
 import Locals from "@/providers/locals";
 import { generateUniqueName } from "@/utils/random";
-import { IPdfService } from "@/interfaces/pdf";
 import { PdfService } from "@/services/pdf";
 import { IGenerateReportStrategy } from "@/interfaces/report";
 import ImageService from "@/services/image";
@@ -13,7 +12,7 @@ export default class DocxTemplateStrategy implements IGenerateReportStrategy {
   private cmdDelimiter: string | [string, string] | undefined;
 
   constructor(
-    private pdfService: IPdfService,
+    private pdfService: PdfService,
     private imageService: ImageService
   ) {
     this.additionalJsContext = {
@@ -56,7 +55,7 @@ export default class DocxTemplateStrategy implements IGenerateReportStrategy {
 
       fs.writeFileSync(newDocFile, report);
 
-      const pdf = await this.pdfService.convertToPdf(newDocFile);
+      const pdf = await this.pdfService.fetchPdfFile(newDocFile);
 
       return pdf;
     } catch (error) {

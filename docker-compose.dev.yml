@@ -4,12 +4,15 @@ services:
     build:
       context: .
       target: development
+      args:
+        - NUM_INSTANCES=1
     container_name: doc-gallery-development
     volumes:
       - ./:/app
       - /app/node_modules
     environment:
       - PORT=3000
+      - NUM_INSTANCES=1
     ports:
       - 3000:3000
     deploy:

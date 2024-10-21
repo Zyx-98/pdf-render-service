@@ -1,12 +1,12 @@
-import { IPdfService } from "@/interfaces/pdf";
 import { DocxInputType, IGenerateReportStrategy } from "@/interfaces/report";
 import fs from "fs";
 import { patchDocument } from "docx";
 import { generateUniqueName } from "@/utils/random";
 import Locals from "@/providers/locals";
+import { PdfService } from "../pdf";
 
 export default class DocxStrategy implements IGenerateReportStrategy {
-  constructor(private pdfService: IPdfService) {}
+  constructor(private pdfService: PdfService) {}
 
   async execute(
     patches: DocxInputType,
@@ -24,7 +24,7 @@ export default class DocxStrategy implements IGenerateReportStrategy {
 
       fs.writeFileSync(newDocFile, report);
 
-      const pdfFilePath = await this.pdfService.convertToPdf(newDocFile);
+      const pdfFilePath = await this.pdfService.fetchPdfFile(newDocFile);
 
       return pdfFilePath;
     } catch (error) {
