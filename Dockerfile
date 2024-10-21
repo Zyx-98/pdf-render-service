@@ -56,8 +56,8 @@ COPY assets/fonts/. /usr/share/fonts/truetype/libreoffice/
 
 WORKDIR /app
 
-RUN groupadd -g 10001 usergroup && \
-    useradd -u 10000 -g usergroup appuser && \
+RUN addgroup -g 10001 usergroup && \
+    adduser -u 10000 -G usergroup -D appuser && \
     mkdir -p /home/appuser/.cache && \
     chown -R appuser:usergroup /home/appuser && \
     chmod 700 /home/appuser/.cache && \
@@ -75,6 +75,8 @@ ENV NUM_INSTANCES=${NUM_INSTANCES:-1}
 RUN chmod +x ./libreoffice.sh
 
 RUN ./libreoffice.sh
+
+RUN chown -R appuser:usergroup /tmp/libreoffice/
 
 RUN npm ci --only=production
 

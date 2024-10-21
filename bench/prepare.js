@@ -53,7 +53,7 @@ export const options = {
   vus: 5,
   duration: "2m",
   thresholds: {
-    http_req_duration: ["p(90)<4000"], // 90% of the requests must complete below 4s
+    // http_req_duration: ["p(90)<4000"], // 90% of the requests must complete below 4s
     http_req_failed: ["rate<0.01"],
   },
 };

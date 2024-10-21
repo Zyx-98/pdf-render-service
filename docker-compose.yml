@@ -11,9 +11,9 @@ services:
       - PORT=${PORT:-3000}
       - TEMPLATE_PATH=/app/template
       - OUTPUT_PATH=/tmp
+      - NUM_INSTANCES=${NUM_INSTANCES:-1}
     ports:
       - "${PORT:-3000}:${PORT:-3000}"
-      - NUM_INSTANCES=${NUM_INSTANCES:-1}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:${PORT:-3000}/health"]
       interval: 30s
