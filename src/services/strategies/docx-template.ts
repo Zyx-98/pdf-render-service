@@ -30,8 +30,6 @@ export default class DocxTemplateStrategy implements IGenerateReportStrategy {
       },
     };
     this.cmdDelimiter = ["{", "}"];
-
-    this.pdfService = new PdfService();
   }
 
   public async execute(
