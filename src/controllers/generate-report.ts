@@ -1,4 +1,3 @@
-import fs, { PathLike } from "fs";
 import { Request, Response } from "express";
 import GenerateReportStrategy from "@/services/strategies/generate-report";
 import { getDocxTemplateStrategyService } from "@/dependency";
