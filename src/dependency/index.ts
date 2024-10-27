@@ -1,4 +1,4 @@
-import { GenerateReportController } from "@/controllers/generate-report"
+import { GenerateReportController } from "@/controllers/v1/generate-report"
 import ImageService from "@/services/image"
 import { PdfService } from "@/services/pdf"
 import DocxStrategy from "@/services/strategies/docx"
