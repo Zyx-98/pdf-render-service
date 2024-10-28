@@ -1,5 +1,40 @@
 # DOC GALLERY SERVICE
 
+The service supports generating pdf from provided json data, based on a DOCX to PDF conversion. 
+
+## Overview
+
+The service uses [dox-template](https://www.npmjs.com/package/docx-templates) and [docx](https://www.npmjs.com/package/docx) libraries to create templates and the `libreoffice` to convert docx templates to pdf files.  
+
+## Goals
+
+1. **Strategies implementations**
+
+<table style="margin-left: 30px">
+   <thead>
+      <tr>
+         <th>Strategy</th>
+         <th>Status</th>
+      </tr>
+   </thead>
+   <tbody>
+      <tr>
+       <td>docx-template</td>
+       <td style="text-align:center;">✅</td>
+      </tr>
+      <tr>
+       <td>docx</td>
+       <td style="text-align:center;">🛠️</td>
+      </tr>
+   </tbody>
+</table>
+
+2. **Performances**
+
+- ✅ Easy to setup and scale.
+- ✅ Operates well and stably on low configurations servers (2 cores CPU and 512 MB of memory).
+- ✅ High fault tolerance ensures stability and consistency.
+
 ## Development Setup
 
 1. **Start the development environment**:  
