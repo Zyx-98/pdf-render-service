@@ -1,7 +1,7 @@
 import { z } from "zod";
+import { baseSchema } from "./base";
 
-export const GenerateReportSchema = z.object({
-  templateId: z.number(),
+export const GenerateReportSchema = baseSchema.extend({
   data: z.object({
     seller: z.object({
       name: z.string(),
