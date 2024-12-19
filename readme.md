@@ -1,6 +1,6 @@
 # DOC GALLERY SERVICE
 
-The service supports generating pdf from provided json data, based on a DOCX to PDF conversion. 
+The service supports generating pdf from provided json data, based on a DOCX to PDF conversion.
 
 ## Overview
 
