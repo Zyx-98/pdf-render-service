@@ -1,13 +1,20 @@
 import { NextFunction, Request, Response } from "express";
-import { z, ZodError } from "zod";
+import { ZodError } from "zod";
 import { StatusCodes } from "http-status-codes";
 import Log from "@/utils/log";
+import { templates } from "@/constants/template";
+import { baseSchema } from "@/validations/base";
 
 export default class Zod {
-  public static validation(schema: z.ZodObject<any, any>) {
+  public static pdfValidation() {
     return (req: Request, res: Response, next: NextFunction) => {
       try {
-        schema.parse(req.body);
+        baseSchema.parse(req.body);
+
+        const { templateId } = req.body;
+        const template = templates[templateId];
+
+        template.validationSchema.parse(req.body);
         next();
       } catch (error: any) {
         Log.error(error.message);

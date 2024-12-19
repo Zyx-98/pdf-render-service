@@ -4,11 +4,7 @@ import { getDocxTemplateStrategyService } from "@/dependency";
 import Locals from "@/providers/locals";
 import { StatusCodes } from "http-status-codes";
 import { PassThrough } from "stream";
-
-const TEMPLATE_ITEMS = {
-  1: '/simple_docx_template.docx',
-  2: '/simple_docx_template-small.docx',
-}
+import { templates } from "@/constants/template";
 
 export class GenerateReportController {
   constructor(private generateReportStrategyService: GenerateReportStrategy) {}
@@ -16,7 +12,7 @@ export class GenerateReportController {
   generateReport = async (req: Request, res: Response) => {
     const { templateId, data } = req.body;
     const templatePath =
-      Locals.config().templatePath + TEMPLATE_ITEMS[templateId as keyof typeof TEMPLATE_ITEMS];
+      Locals.config().templatePath + templates[templateId].path;
 
     const report = await this.generateReportStrategyService
       .setStrategy(getDocxTemplateStrategyService())

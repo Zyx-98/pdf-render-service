@@ -1,4 +1,5 @@
 import { IConfig } from "@/interfaces/locals";
+import Log from "@/utils/log";
 import { Application } from "express";
 import path from "path";
 
@@ -15,7 +16,8 @@ export default class Locals {
   }
 
   public static init(_express: Application): Application {
-    _express.locals.app = this.config();
+    _express.locals.config = this.config();
+    _express.locals.log = Log;
     return _express;
   }
 }
