@@ -31,7 +31,7 @@ export class GenerateReportController {
 
     stream.end(report);
 
-    res.setHeader("Content-Length", report?.length.toString() || 0);
+    res.setHeader("Content-Length", report?.length?.toString() || 0);
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader("Content-Disposition", "attachment; filename=sample.pdf");
 
