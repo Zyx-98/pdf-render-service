@@ -12,6 +12,8 @@ services:
       - TEMPLATE_PATH=/app/template
       - OUTPUT_PATH=/tmp
       - NUM_INSTANCES=${NUM_INSTANCES:-1}
+      - BASIC_AUTH_USER=${BASIC_AUTH_USER}
+      - BASIC_AUTH_PASSWORD=${BASIC_AUTH_PASSWORD}
     ports:
       - "${PORT:-3000}:${PORT:-3000}"
     healthcheck:

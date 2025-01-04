@@ -4,4 +4,6 @@ export interface IConfig {
     apiPrefix: string,
     outputPath: string,
     numInstances: number,
+    basicAuthUser: string,
+    basicAuthPassword: string
 }

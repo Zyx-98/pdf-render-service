@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { ZodError } from "zod";
 import { StatusCodes } from "http-status-codes";
 import Log from "@/utils/log";
-import { templates } from "@/constants/template";
+import { TEMPLATES } from "@/constants/template";
 import { baseSchema } from "@/validations/base";
 
 export default class Zod {
@@ -12,7 +12,7 @@ export default class Zod {
         baseSchema.parse(req.body);
 
         const { templateId } = req.body;
-        const template = templates[templateId];
+        const template = TEMPLATES[templateId];
 
         template.validationSchema.parse(req.body);
         next();

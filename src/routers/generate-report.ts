@@ -1,11 +1,15 @@
 import { Router } from "express";
 import Zod from "@/middlewares/zod";
-import { getGenerateReportController } from "@/dependency";
+import { GenerateReportController } from "@/controllers/v1/generate-report";
 
 const router = Router();
 
-const generateReportController = getGenerateReportController();
-
-router.route("/").post(Zod.pdfValidation(), generateReportController.generateReport)
+router
+  .route("/")
+  .post(
+    Zod.pdfValidation(),
+    app.container.make<GenerateReportController>(GenerateReportController)
+      .generateReport
+  );
 
 export default router;

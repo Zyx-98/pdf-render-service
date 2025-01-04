@@ -1,16 +1,12 @@
 import { GenerateReportSchema } from "@/validations/generate-report";
+import { TEMPLATE_TYPE } from "@/constants/template-type";
 
-export const templateType = {
-  sample: "sample",
-  "sample-small": "sample-small",
-};
-
-export const templates = {
-  [templateType.sample]: {
+export const TEMPLATES = {
+  [TEMPLATE_TYPE.sample]: {
     path: "/simple_docx_template.docx",
     validationSchema: GenerateReportSchema,
   },
-  [templateType["sample-small"]]: {
+  [TEMPLATE_TYPE["sample-small"]]: {
     path: "/simple_docx_template-small.docx",
     validationSchema: GenerateReportSchema,
   },

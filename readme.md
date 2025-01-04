@@ -26,6 +26,7 @@ The service uses [dox-template](https://www.npmjs.com/package/docx-templates) an
        <td>docx</td>
        <td style="text-align:center;">🛠️</td>
       </tr>
+
    </tbody>
 </table>
 
@@ -34,6 +35,11 @@ The service uses [dox-template](https://www.npmjs.com/package/docx-templates) an
 - ✅ Easy to setup and scale.
 - ✅ Operates well and stably on low configurations servers (2 cores CPU and 512 MB of memory).
 - ✅ High fault tolerance ensures stability and consistency.
+
+3. **TODO**
+
+- [] Implement tests.
+- [] Setup ci/cd on google cloud.
 
 ## Development Setup
 
