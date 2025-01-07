@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 
 export default class BasicAuth {
-  public static basicAuth(req: Request, res: Response, next: NextFunction) {
+  public static middleware(req: Request, res: Response, next: NextFunction) {
     const authorization = req.headers.authorization;
 
     if (!authorization) {
