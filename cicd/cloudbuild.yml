@@ -1,0 +1,38 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - '-c'
+      - |
+        # Fetch secrets from Secret Manager
+        export BASIC_AUTH_USER=$(gcloud secrets versions access latest --secret="BASIC_AUTH_USER")
+        export BASIC_AUTH_PASSWORD=$(gcloud secrets versions access latest --secret="BASIC_AUTH_PASSWORD")
+        export NUM_INSTANCES=$(gcloud secrets versions access latest --secret="NUM_INSTANCES")
+        export PORT=$(gcloud secrets versions access latest --secret="PORT")
+
+        # Build the Docker image with build arguments
+        docker build \
+          --build-arg BASIC_AUTH_USER=$BASIC_AUTH_USER \
+          --build-arg BASIC_AUTH_PASSWORD=$BASIC_AUTH_PASSWORD \
+          --build-arg NUM_INSTANCES=$NUM_INSTANCES \
+          --build-arg PORT=$PORT \
+          -t $_HOST_NAME/$PROJECT_ID/$_REPOSITORY/$_SERVICE_NAME:$COMMIT_SHA \
+          .
+  - name: 'grc.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - '$_HOST_NAME/$PROJECT_ID/$_REPOSITORY/$_SERVICE_NAME:$COMMIT_SHA'
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        # Deploy the Docker image
+        gcloud run deploy $_SERVICE_NAME \
+          --image=$_HOST_NAME/$PROJECT_ID/$_REPOSITORY/$_SERVICE_NAME:$COMMIT_SHA \
+          --platform=managed \
+          --region=$_REGION \
+          --allow-unauthenticated \
+          --set-env-vars=BASIC_AUTH_USER=$BASIC_AUTH_USER,BASIC_AUTH_PASSWORD=$BASIC_AUTH_PASSWORD,NUM_INSTANCES=$NUM_INSTANCES,PORT=$PORT \
+
+images:
+  - '$_HOST_NAME/$PROJECT_ID/$_REPOSITORY/$_SERVICE_NAME:$COMMIT_SHA'

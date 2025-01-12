@@ -35,7 +35,9 @@ RUN ./libreoffice.sh
 
 RUN npm run build
 
-ENV PORT=3000
+ARG PORT
+
+ENV PORT=${PORT:-3000}
 
 EXPOSE ${PORT}
 
@@ -84,7 +86,9 @@ RUN chown -R appuser:usergroup /app
 
 USER appuser
 
-ENV PORT=3000
+ARG PORT
+
+ENV PORT=${PORT:-3000}
 
 EXPOSE ${PORT}
 
