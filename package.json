@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "nodemon --watch \"src/**\" --ext \"ts,json\" --ignore \"src/**/*.spec.ts\" --exec \"ts-node -r tsconfig-paths/register src/index.ts\"",
     "build": "webpack --mode production",
-    "start": "node dist/bundle.js"
+    "start": "node dist/bundle.js",
+    "deploy:staging": "TIMESTAMP=$(date +%Y%m%d%H%M%S) && TAG_NAME=staging-${TIMESTAMP} && git tag $TAG_NAME && git push origin $TAG_NAME"
   },
   "keywords": [],
   "author": "",
