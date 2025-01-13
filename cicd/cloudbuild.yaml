@@ -4,20 +4,20 @@ steps:
       - '-c'
       - |
         # Fetch the secret value from Secret Manager
-        SECRET_VALUE=$(gcloud secrets versions access latest --secret="Pdf-render-service")
+        SECRET_VALUE=$(gcloud secrets versions access latest --secret=Pdf-render-service)
 
         # Parse the secret value to extract individual environment variables
-        export BASIC_AUTH_USER=$(echo "$SECRET_VALUE" | grep BASIC_AUTH_USER | cut -d '=' -f2)
-        export BASIC_AUTH_PASSWORD=$(echo "$SECRET_VALUE" | grep BASIC_AUTH_PASSWORD | cut -d '=' -f2)
-        export NUM_INSTANCES=$(echo "$SECRET_VALUE" | grep NUM_INSTANCES | cut -d '=' -f2)
-        export PORT=$(echo "$SECRET_VALUE" | grep PORT | cut -d '=' -f2)
+        export BASIC_AUTH_USER=$(echo "$$SECRET_VALUE" | grep BASIC_AUTH_USER | cut -d '=' -f2)
+        export BASIC_AUTH_PASSWORD=$(echo "$$SECRET_VALUE" | grep BASIC_AUTH_PASSWORD | cut -d '=' -f2)
+        export NUM_INSTANCES=$(echo "$$SECRET_VALUE" | grep NUM_INSTANCES | cut -d '=' -f2)
+        export PORT=$(echo "$$SECRET_VALUE" | grep PORT | cut -d '=' -f2)
 
         # Build the Docker image with build arguments
         docker build \
-          --build-arg BASIC_AUTH_USER=$BASIC_AUTH_USER \
-          --build-arg BASIC_AUTH_PASSWORD=$BASIC_AUTH_PASSWORD \
-          --build-arg NUM_INSTANCES=$NUM_INSTANCES \
-          --build-arg PORT=$PORT \
+          --build-arg BASIC_AUTH_USER=$$BASIC_AUTH_USER \
+          --build-arg BASIC_AUTH_PASSWORD=$$BASIC_AUTH_PASSWORD \
+          --build-arg NUM_INSTANCES=$$NUM_INSTANCES \
+          --build-arg PORT=$$PORT \
           -t $_HOST_NAME/$PROJECT_ID/$_REPOSITORY/$_SERVICE_NAME:$COMMIT_SHA \
           .
   - name: 'grc.io/cloud-builders/docker'
@@ -35,7 +35,7 @@ steps:
           --platform=managed \
           --region=$_REGION \
           --allow-unauthenticated \
-          --set-env-vars=BASIC_AUTH_USER=$BASIC_AUTH_USER,BASIC_AUTH_PASSWORD=$BASIC_AUTH_PASSWORD,NUM_INSTANCES=$NUM_INSTANCES,PORT=$PORT \
+          --set-env-vars=BASIC_AUTH_USER=$$BASIC_AUTH_USER,BASIC_AUTH_PASSWORD=$$BASIC_AUTH_PASSWORD,NUM_INSTANCES=$$NUM_INSTANCES,PORT=$$PORT \
 
 images:
   - '$_HOST_NAME/$PROJECT_ID/$_REPOSITORY/$_SERVICE_NAME:$COMMIT_SHA'
