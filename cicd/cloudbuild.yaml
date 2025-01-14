@@ -16,21 +16,17 @@ steps:
 
   - id: 'build image' 
     name: 'gcr.io/cloud-builders/docker'
+    entrypoint: 'bash'
     args:
-      - 'build'
-      - '--build-arg'
-      - 'BASIC_AUTH_USER=$(cat /workspace/BASIC_AUTH_USER)'
-      - '--build-arg'
-      - 'BASIC_AUTH_PASSWORD=$(cat /workspace/BASIC_AUTH_PASSWORD)'
-      - '--build-arg'
-      - 'NUM_INSTANCES=$(cat /workspace/NUM_INSTANCES)'
-      - '--build-arg'
-      - 'PORT=$(cat /workspace/PORT)'
-      - '-t'
-      - '$_AR_HOSTNAME/$PROJECT_ID/$_AR_REPOSITORY/$_SERVICE_NAME:$COMMIT_SHA'
-      - '--target'
-      - 'production'
-      - '.'
+      - '-c'
+      - |
+        # Build the Docker image with build arguments
+        docker build \
+          --build-arg NUM_INSTANCES=$(cat /workspace/NUM_INSTANCES) \
+          --build-arg PORT=$(cat /workspace/PORT) \
+          -t $_AR_HOSTNAME/$PROJECT_ID/$_AR_REPOSITORY/$_SERVICE_NAME:$COMMIT_SHA \
+          --target production \
+          .
 
   - id: 'push image' 
     name: 'gcr.io/cloud-builders/docker'
