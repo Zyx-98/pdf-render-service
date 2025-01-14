@@ -88,6 +88,8 @@ USER appuser
 
 ARG PORT
 
+RUN echo ${PORT}
+
 ENV PORT=${PORT:-3000}
 
 EXPOSE ${PORT}

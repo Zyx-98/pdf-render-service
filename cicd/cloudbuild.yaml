@@ -1,32 +1,44 @@
 steps:
-  - id: 'setup secret variables and build image' 
-    name: 'gcr.io/cloud-builders/docker'
+  - id: 'setup secret variables' 
+    name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: 'bash'
     args:
       - '-c'
       - |
         # Fetch the secret value from Secret Manager
-        SECRET_VALUE=$(gcloud secrets versions access latest --secret=Pdf-render-service)
+        SECRET_VALUE=$(gcloud secrets versions access latest --secret="Pdf-render-service")
 
         # Parse the secret value to extract individual environment variables
-        export BASIC_AUTH_USER=$(echo "$$SECRET_VALUE" | grep BASIC_AUTH_USER | cut -d '=' -f2)
-        export BASIC_AUTH_PASSWORD=$(echo "$$SECRET_VALUE" | grep BASIC_AUTH_PASSWORD | cut -d '=' -f2)
-        export NUM_INSTANCES=$(echo "$$SECRET_VALUE" | grep NUM_INSTANCES | cut -d '=' -f2)
-        export PORT=$(echo "$$SECRET_VALUE" | grep PORT | cut -d '=' -f2)
+        echo "$$SECRET_VALUE" | grep BASIC_AUTH_USER | cut -d '=' -f2 > /workspace/BASIC_AUTH_USER
+        echo "$$SECRET_VALUE" | grep BASIC_AUTH_PASSWORD | cut -d '=' -f2 > /workspace/BASIC_AUTH_PASSWORD
+        echo "$$SECRET_VALUE" | grep NUM_INSTANCES | cut -d '=' -f2 > /workspace/NUM_INSTANCES
+        echo "$$SECRET_VALUE" | grep PORT | cut -d '=' -f2 > /workspace/PORT
 
-        # Build the Docker image with build arguments
-        docker build \
-          --build-arg BASIC_AUTH_USER=$$BASIC_AUTH_USER \
-          --build-arg BASIC_AUTH_PASSWORD=$$BASIC_AUTH_PASSWORD \
-          --build-arg NUM_INSTANCES=$$NUM_INSTANCES \
-          --build-arg PORT=$$PORT \
-          -t $_AR_HOSTNAME/$PROJECT_ID/$_AR_REPOSITORY/$_SERVICE_NAME:$COMMIT_SHA \
-          .
+  - id: 'build image' 
+    name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '--build-arg'
+      - 'BASIC_AUTH_USER=$(cat /workspace/BASIC_AUTH_USER)'
+      - '--build-arg'
+      - 'BASIC_AUTH_PASSWORD=$(cat /workspace/BASIC_AUTH_PASSWORD)'
+      - '--build-arg'
+      - 'NUM_INSTANCES=$(cat /workspace/NUM_INSTANCES)'
+      - '--build-arg'
+      - 'PORT=$(cat /workspace/PORT)'
+      - '-t'
+      - '$_AR_HOSTNAME/$PROJECT_ID/$_AR_REPOSITORY/$_SERVICE_NAME:$COMMIT_SHA'
+      - '--target'
+      - 'production'
+      - '.'
+
   - id: 'push image' 
-    name: 'grc.io/cloud-builders/docker'
+    name: 'gcr.io/cloud-builders/docker'
     args:
       - 'push'
       - '$_AR_HOSTNAME/$PROJECT_ID/$_AR_REPOSITORY/$_SERVICE_NAME:$COMMIT_SHA'
-  - id: 'deployment' 
+
+  - id: 'deploy service' 
     name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'bash'
     args:
@@ -34,11 +46,11 @@ steps:
       - |
         # Deploy the Docker image
         gcloud run deploy $_SERVICE_NAME \
-          --image=$_AR_HOSTNAME/$PROJECT_ID/$_AR_REPOSITORY/$_SERVICE_NAME:$COMMIT_SHA \
+          --image=$_AR_HOSTNAME/$PROJECT_ID/$_REPOSITORY/$_SERVICE_NAME:$COMMIT_SHA \
           --platform=managed \
           --region=$_REGION \
           --allow-unauthenticated \
-          --set-env-vars=BASIC_AUTH_USER=$$BASIC_AUTH_USER,BASIC_AUTH_PASSWORD=$$BASIC_AUTH_PASSWORD,NUM_INSTANCES=$$NUM_INSTANCES,PORT=$$PORT \
+          --set-env-vars BASIC_AUTH_USER=$(cat /workspace/BASIC_AUTH_USER),BASIC_AUTH_PASSWORD=$(cat /workspace/BASIC_AUTH_PASSWORD),NUM_INSTANCES=$(cat /workspace/NUM_INSTANCES),PORT=$(cat /workspace/PORT) \
 
 images:
   - '$_AR_HOSTNAME/$PROJECT_ID/$_AR_REPOSITORY/$_SERVICE_NAME:$COMMIT_SHA'
