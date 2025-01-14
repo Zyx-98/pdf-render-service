@@ -1,5 +1,5 @@
 steps:
-  - id: 'setup secret variables' 
+  - id: 'setup secret variables and build image' 
     name: 'gcr.io/cloud-builders/docker'
     args:
       - '-c'
@@ -19,13 +19,13 @@ steps:
           --build-arg BASIC_AUTH_PASSWORD=$$BASIC_AUTH_PASSWORD \
           --build-arg NUM_INSTANCES=$$NUM_INSTANCES \
           --build-arg PORT=$$PORT \
-          -t $_HOST_NAME/$PROJECT_ID/$_REPOSITORY/$_SERVICE_NAME:$COMMIT_SHA \
+          -t $_AR_HOSTNAME/$PROJECT_ID/$_AR_REPOSITORY/$_SERVICE_NAME:$COMMIT_SHA \
           .
-  - id: 'build' 
+  - id: 'push image' 
     name: 'grc.io/cloud-builders/docker'
     args:
       - 'push'
-      - '$_HOST_NAME/$PROJECT_ID/$_REPOSITORY/$_SERVICE_NAME:$COMMIT_SHA'
+      - '$_AR_HOSTNAME/$PROJECT_ID/$_AR_REPOSITORY/$_SERVICE_NAME:$COMMIT_SHA'
   - id: 'deployment' 
     name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'bash'
@@ -34,13 +34,13 @@ steps:
       - |
         # Deploy the Docker image
         gcloud run deploy $_SERVICE_NAME \
-          --image=$_HOST_NAME/$PROJECT_ID/$_REPOSITORY/$_SERVICE_NAME:$COMMIT_SHA \
+          --image=$_AR_HOSTNAME/$PROJECT_ID/$_AR_REPOSITORY/$_SERVICE_NAME:$COMMIT_SHA \
           --platform=managed \
           --region=$_REGION \
           --allow-unauthenticated \
           --set-env-vars=BASIC_AUTH_USER=$$BASIC_AUTH_USER,BASIC_AUTH_PASSWORD=$$BASIC_AUTH_PASSWORD,NUM_INSTANCES=$$NUM_INSTANCES,PORT=$$PORT \
 
 images:
-  - '$_HOST_NAME/$PROJECT_ID/$_REPOSITORY/$_SERVICE_NAME:$COMMIT_SHA'
+  - '$_AR_HOSTNAME/$PROJECT_ID/$_AR_REPOSITORY/$_SERVICE_NAME:$COMMIT_SHA'
 options:
   logging: CLOUD_LOGGING_ONLY
