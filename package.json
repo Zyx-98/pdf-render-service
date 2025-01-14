@@ -6,7 +6,8 @@
     "dev": "nodemon --watch \"src/**\" --ext \"ts,json\" --ignore \"src/**/*.spec.ts\" --exec \"ts-node -r tsconfig-paths/register src/index.ts\"",
     "build": "webpack --mode production",
     "start": "node dist/bundle.js",
-    "deploy:staging": "git tag -l 'staging-*' | xargs -r -I {} git tag -d {} && git tag -l 'staging-*' | xargs -r -I {} git push origin :refs/tags/{} && TIMESTAMP=$(date +%Y%m%d%H%M%S) && TAG_NAME=staging-${TIMESTAMP} && git tag $TAG_NAME && git push origin $TAG_NAME"
+    "clean:tags": "git push -d origin $(git tag -l \"staging-*\") && git tag -d $(git tag -l \"staging*\")",
+    "deploy:staging": "npm run clean:tags && TIMESTAMP=$(date +%Y%m%d%H%M%S) && TAG_NAME=staging-${TIMESTAMP} && git tag $TAG_NAME && git push origin $TAG_NAME"
   },
   "keywords": [],
   "author": "",
