@@ -1,5 +1,6 @@
 steps:
-  - name: 'gcr.io/cloud-builders/docker'
+  - id: 'setup secret variables' 
+    name: 'gcr.io/cloud-builders/docker'
     args:
       - '-c'
       - |
@@ -20,11 +21,13 @@ steps:
           --build-arg PORT=$$PORT \
           -t $_HOST_NAME/$PROJECT_ID/$_REPOSITORY/$_SERVICE_NAME:$COMMIT_SHA \
           .
-  - name: 'grc.io/cloud-builders/docker'
+  - id: 'build' 
+    name: 'grc.io/cloud-builders/docker'
     args:
       - 'push'
       - '$_HOST_NAME/$PROJECT_ID/$_REPOSITORY/$_SERVICE_NAME:$COMMIT_SHA'
-  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  - id: 'deployment' 
+    name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'bash'
     args:
       - '-c'
