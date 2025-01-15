@@ -12,7 +12,6 @@ steps:
         echo "$$SECRET_VALUE" | grep BASIC_AUTH_USER | cut -d '=' -f2 > /workspace/BASIC_AUTH_USER
         echo "$$SECRET_VALUE" | grep BASIC_AUTH_PASSWORD | cut -d '=' -f2 > /workspace/BASIC_AUTH_PASSWORD
         echo "$$SECRET_VALUE" | grep NUM_INSTANCES | cut -d '=' -f2 > /workspace/NUM_INSTANCES
-        echo "$$SECRET_VALUE" | grep PORT | cut -d '=' -f2 > /workspace/PORT
 
   - id: 'build image' 
     name: 'gcr.io/cloud-builders/docker'
@@ -23,8 +22,7 @@ steps:
         # Build the Docker image with build arguments
         docker build \
           --build-arg NUM_INSTANCES=$(cat /workspace/NUM_INSTANCES) \
-          --build-arg PORT=$(cat /workspace/PORT) \
-          --tag $_AR_HOSTNAME/$PROJECT_ID/$_AR_REPOSITORY/$_SERVICE_NAME:$COMMIT_SHA \
+          --tag $_AR_HOSTNAME/$PROJECT_ID/$_AR_REPOSITORY/$_SERVICE_NAME:$SHORT_SHA \
           --tag $_AR_HOSTNAME/$PROJECT_ID/$_AR_REPOSITORY/$_SERVICE_NAME:latest \
           --cache-from $_AR_HOSTNAME/$PROJECT_ID/$_AR_REPOSITORY/$_SERVICE_NAME:latest \
           --target production \
@@ -34,7 +32,7 @@ steps:
     name: 'gcr.io/cloud-builders/docker'
     args:
       - 'push'
-      - '$_AR_HOSTNAME/$PROJECT_ID/$_AR_REPOSITORY/$_SERVICE_NAME:$COMMIT_SHA'
+      - '$_AR_HOSTNAME/$PROJECT_ID/$_AR_REPOSITORY/$_SERVICE_NAME:$SHORT_SHA'
 
   - id: 'deploy service' 
     name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
@@ -44,14 +42,14 @@ steps:
       - |
         # Deploy the Docker image
         gcloud run deploy $_SERVICE_NAME \
-          --image=$_AR_HOSTNAME/$PROJECT_ID/$_REPOSITORY/$_SERVICE_NAME:$COMMIT_SHA \
+          --image=$_AR_HOSTNAME/$PROJECT_ID/$_AR_REPOSITORY/$_SERVICE_NAME:$SHORT_SHA \
           --platform=managed \
           --region=$_DEPLOY_REGION \
           --allow-unauthenticated \
-          --set-env-vars BASIC_AUTH_USER=$(cat /workspace/BASIC_AUTH_USER),BASIC_AUTH_PASSWORD=$(cat /workspace/BASIC_AUTH_PASSWORD),NUM_INSTANCES=$(cat /workspace/NUM_INSTANCES),PORT=$(cat /workspace/PORT) \
+          --set-env-vars BASIC_AUTH_USER=$(cat /workspace/BASIC_AUTH_USER),BASIC_AUTH_PASSWORD=$(cat /workspace/BASIC_AUTH_PASSWORD),NUM_INSTANCES=$(cat /workspace/NUM_INSTANCES) \
 
 images:
-  - '$_AR_HOSTNAME/$PROJECT_ID/$_AR_REPOSITORY/$_SERVICE_NAME:$COMMIT_SHA'
+  - '$_AR_HOSTNAME/$PROJECT_ID/$_AR_REPOSITORY/$_SERVICE_NAME:$SHORT_SHA'
   - '$_AR_HOSTNAME/$PROJECT_ID/$_AR_REPOSITORY/$_SERVICE_NAME:latest'
 options:
   logging: CLOUD_LOGGING_ONLY
