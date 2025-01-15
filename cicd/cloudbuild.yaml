@@ -24,7 +24,9 @@ steps:
         docker build \
           --build-arg NUM_INSTANCES=$(cat /workspace/NUM_INSTANCES) \
           --build-arg PORT=$(cat /workspace/PORT) \
-          -t $_AR_HOSTNAME/$PROJECT_ID/$_AR_REPOSITORY/$_SERVICE_NAME:$COMMIT_SHA \
+          --tag $_AR_HOSTNAME/$PROJECT_ID/$_AR_REPOSITORY/$_SERVICE_NAME:$COMMIT_SHA \
+          --tag $_AR_HOSTNAME/$PROJECT_ID/$_AR_REPOSITORY/$_SERVICE_NAME:latest \
+          --cache-from $_AR_HOSTNAME/$PROJECT_ID/$_AR_REPOSITORY/$_SERVICE_NAME:latest \
           --target production \
           .
 
@@ -50,5 +52,6 @@ steps:
 
 images:
   - '$_AR_HOSTNAME/$PROJECT_ID/$_AR_REPOSITORY/$_SERVICE_NAME:$COMMIT_SHA'
+  - '$_AR_HOSTNAME/$PROJECT_ID/$_AR_REPOSITORY/$_SERVICE_NAME:latest'
 options:
   logging: CLOUD_LOGGING_ONLY
