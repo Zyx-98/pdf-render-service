@@ -46,7 +46,7 @@ steps:
           --platform=managed \
           --region=$_DEPLOY_REGION \
           --allow-unauthenticated \
-          --set-env-vars BASIC_AUTH_USER=$(cat /workspace/BASIC_AUTH_USER),BASIC_AUTH_PASSWORD=$(cat /workspace/BASIC_AUTH_PASSWORD),NUM_INSTANCES=$(cat /workspace/NUM_INSTANCES) \
+          --set-env-vars BASIC_AUTH_USER=$(cat /workspace/BASIC_AUTH_USER),BASIC_AUTH_PASSWORD=$(cat /workspace/BASIC_AUTH_PASSWORD),NUM_INSTANCES=$(cat /workspace/NUM_INSTANCES),TEMPLATE_PATH=/app/template,OUTPUT_PATH=/tmp \
 
 images:
   - '$_AR_HOSTNAME/$PROJECT_ID/$_AR_REPOSITORY/$_SERVICE_NAME:$SHORT_SHA'
