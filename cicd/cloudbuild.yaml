@@ -12,7 +12,10 @@ steps:
         echo "$$SECRET_VALUE" | grep BASIC_AUTH_USER | cut -d '=' -f2 > /workspace/BASIC_AUTH_USER
         echo "$$SECRET_VALUE" | grep BASIC_AUTH_PASSWORD | cut -d '=' -f2 > /workspace/BASIC_AUTH_PASSWORD
         echo "$$SECRET_VALUE" | grep NUM_INSTANCES | cut -d '=' -f2 > /workspace/NUM_INSTANCES
-
+  - id: 'pull image to check whether it exists' 
+    name: 'gcr.io/cloud-builders/docker'
+    entrypoint: 'bash'
+    args: ['-c', 'docker pull $_AR_HOSTNAME/$PROJECT_ID/$_AR_REPOSITORY/$_SERVICE_NAME:latest || exit 0']
   - id: 'build image' 
     name: 'gcr.io/cloud-builders/docker'
     entrypoint: 'bash'
@@ -22,8 +25,8 @@ steps:
         # Build the Docker image with build arguments
         docker build \
           --build-arg NUM_INSTANCES=$(cat /workspace/NUM_INSTANCES) \
-          --tag $_AR_HOSTNAME/$PROJECT_ID/$_AR_REPOSITORY/$_SERVICE_NAME:$SHORT_SHA \
-          --tag $_AR_HOSTNAME/$PROJECT_ID/$_AR_REPOSITORY/$_SERVICE_NAME:latest \
+          -t $_AR_HOSTNAME/$PROJECT_ID/$_AR_REPOSITORY/$_SERVICE_NAME:$SHORT_SHA \
+          -t $_AR_HOSTNAME/$PROJECT_ID/$_AR_REPOSITORY/$_SERVICE_NAME:latest \
           --cache-from $_AR_HOSTNAME/$PROJECT_ID/$_AR_REPOSITORY/$_SERVICE_NAME:latest \
           --target production \
           .
