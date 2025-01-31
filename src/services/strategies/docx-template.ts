@@ -15,15 +15,15 @@ export default class DocxTemplateStrategy implements IGenerateReportStrategy {
     private pdfService: PdfService,
     private imageService: ImageService
   ) {
+    this.imageService.setWithCache(true);
     this.additionalJsContext = {
       insertImage: async (url: string) => {
-        const image = await imageService.getImageFromUrl(url);
-        const { widthCM: width, heightCM: height } =
-          await imageService.getImageDimensionsInCM(Buffer.from(image));
+        const { image, widthCM, heightCM } =
+          await imageService.getFullInformationOfImageWithUrl(url);
 
         return {
-          width,
-          height,
+          width: widthCM,
+          height: heightCM,
           data: image,
           extension: path.extname(url),
         };
