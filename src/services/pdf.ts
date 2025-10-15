@@ -1,100 +1,167 @@
 import path from "path";
 import { exec } from "child_process";
-import fs from "fs";
+import { promisify } from "util";
+import fs from "fs/promises";
+import { existsSync } from "fs";
 import { generateUniqueName } from "@/utils/random";
 import Locals from "@/providers/locals";
 import Log from "@/utils/log";
 
-const checkInterval = 500;
-const timeoutDuration = 30000;
+const execAsync = promisify(exec);
 
-const instanceStatus = Array.from(
-  { length: Locals.config().numInstances },
-  (_, i) => [`p${i + 1}`, 0]
-);
+interface QueueItem {
+  inputFilePath: string;
+  resolve: (value: Buffer | null) => void;
+  reject: (reason: any) => void;
+}
 
 export class PdfService {
+  private queue: QueueItem[] = [];
+  private availableInstances: Set<string>;
+  private processing = false;
+  private readonly conversionTimeout = 10000;
+  private readonly maxBuffer = 10 * 1024 * 1024; // 10MB
+
+  constructor() {
+    const numInstances = Locals.config().numInstances;
+    this.availableInstances = new Set(
+      Array.from({ length: numInstances }, (_, i) => `p${i + 1}`)
+    );
+    Log.info(
+      `Initialized PDF service with ${numInstances} LibreOffice instances`
+    );
+  }
+
   private async convertFileToPdf(
     inputFilePath: string,
     instanceName: string
   ): Promise<Buffer | null> {
     const { outputPath } = Locals.config();
-    const outputDirectory = `${outputPath}/${generateUniqueName()}`;
+    const outputDirectory = path.join(outputPath, generateUniqueName());
 
-    return new Promise((resolve, reject) => {
-      /** TODO: Configure the UserInstallation path using an environment variable to ensure unique temp directories for each LibreOffice process.
-       * It is necessary to reconsider and improve the handling of concurrency in the API
-       */
+    try {
+      await fs.mkdir(outputDirectory, { recursive: true });
+
       const command = `soffice -env:UserInstallation=file:///tmp/libreoffice/${instanceName} --headless --convert-to pdf "${inputFilePath}" --outdir "${outputDirectory}"`;
 
-      const childProcess = exec(
-        command,
-        { timeout: 10000, maxBuffer: 20 * 1024 },
-        (error, stdout, stderr) => {
-          childProcess.kill();
-          if (error) {
-            Log.error(`Conversion failed with error: ${error.message}`);
-            reject(stderr);
-          } else {
-            const outputFiles = fs.readdirSync(outputDirectory);
-            let pdfBuffer: Buffer | null = null;
+      await execAsync(command, {
+        timeout: this.conversionTimeout,
+        maxBuffer: this.maxBuffer,
+      });
 
-            for (const file of outputFiles) {
-              if (path.extname(file) === ".pdf") {
-                pdfBuffer = fs.readFileSync(`${outputDirectory}/${file}`);
-                break;
-              }
-            }
+      const outputFiles = await fs.readdir(outputDirectory);
+      const pdfFile = outputFiles.find((file) => path.extname(file) === ".pdf");
 
-            try {
-              // WARNING: CAREFUL
-              fs.rmSync(outputDirectory, {
-                recursive: true,
-                force: true,
-              });
-            } catch (error: any) {
-              Log.error(error.message);
-            }
+      if (!pdfFile) {
+        Log.warn(`No PDF generated for ${inputFilePath}`);
+        return null;
+      }
 
-            resolve(pdfBuffer);
-          }
-        }
+      const pdfBuffer = await fs.readFile(path.join(outputDirectory, pdfFile));
+
+      this.cleanupDirectory(outputDirectory).catch((err) =>
+        Log.error(
+          `Failed to cleanup directory ${outputDirectory}: ${err.message}`
+        )
       );
-    });
+
+      return pdfBuffer;
+    } catch (error: any) {
+      Log.error(`Conversion failed for ${inputFilePath}: ${error.message}`);
+
+      this.cleanupDirectory(outputDirectory).catch(() => {});
+
+      throw error;
+    }
+  }
+
+  private async cleanupDirectory(directory: string): Promise<void> {
+    try {
+      if (existsSync(directory)) {
+        await fs.rm(directory, { recursive: true, force: true });
+      }
+    } catch (error: any) {
+      Log.error(`Cleanup error for ${directory}: ${error.message}`);
+    }
+  }
+
+  private async processQueue(): Promise<void> {
+    if (
+      this.processing ||
+      this.queue.length === 0 ||
+      this.availableInstances.size === 0
+    ) {
+      return;
+    }
+
+    this.processing = true;
+
+    while (this.queue.length > 0 && this.availableInstances.size > 0) {
+      const instanceName = Array.from(this.availableInstances)[0];
+      this.availableInstances.delete(instanceName);
+
+      const item = this.queue.shift();
+      if (!item) break;
+
+      this.processConversion(item, instanceName);
+    }
+
+    this.processing = false;
+  }
+
+  /**
+   * Process a single conversion and release the instance when done
+   */
+  private async processConversion(
+    item: QueueItem,
+    instanceName: string
+  ): Promise<void> {
+    try {
+      const pdfBuffer = await this.convertFileToPdf(
+        item.inputFilePath,
+        instanceName
+      );
+      item.resolve(pdfBuffer);
+    } catch (error) {
+      item.reject(error);
+    } finally {
+      this.availableInstances.add(instanceName);
+
+      this.processQueue();
+    }
   }
 
   async fetchPdfFile(inputFilePath: string): Promise<Buffer | null> {
     return new Promise((resolve, reject) => {
-      let elapsedTime = 0;
-      let pdfBuffer: Buffer | null = null;
-
-      const intervalId = setInterval(async () => {
-        for (let status of instanceStatus) {
-          const [instanceName, isProcessing] = status;
-
-          if (!isProcessing) {
-            clearInterval(intervalId);
-            status[1] = 1; // Mark instance as processing
-
-            try {
-              pdfBuffer = await this.convertFileToPdf(inputFilePath, instanceName as string);
-            } catch (error) {
-              reject(error);
-            }
-
-            status[1] = 0; // Mark instance as free
-            resolve(pdfBuffer);
-            return;
-          }
+      const timeoutId = setTimeout(() => {
+        const index = this.queue.findIndex((item) => item.resolve === resolve);
+        if (index !== -1) {
+          this.queue.splice(index, 1);
+          reject(new Error("PDF conversion request timed out in queue"));
         }
+      }, 30000);
 
-        elapsedTime += checkInterval;
+      this.queue.push({
+        inputFilePath,
+        resolve: (value) => {
+          clearTimeout(timeoutId);
+          resolve(value);
+        },
+        reject: (reason) => {
+          clearTimeout(timeoutId);
+          reject(reason);
+        },
+      });
 
-        if (elapsedTime >= timeoutDuration) {
-          clearInterval(intervalId);
-          resolve(pdfBuffer);
-        }
-      }, checkInterval);
+      this.processQueue();
     });
+  }
+
+  getStatus() {
+    return {
+      queueLength: this.queue.length,
+      availableInstances: this.availableInstances.size,
+      totalInstances: Locals.config().numInstances,
+    };
   }
 }
